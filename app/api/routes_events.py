@@ -20,6 +20,8 @@ from app.models.event import (
     PersonalizedIdeaItem,
     GuestItem,
     GuestRSVPStatus,
+    EventType,
+    EventReadinessScore,
 )
 from app.services.event_service import event_service
 from app.services.budget_service import BudgetService
@@ -95,25 +97,37 @@ class GuestRSVPPayload(BaseModel):
         return v
 
 
-@router.get("", response_model=List[EventPlan])
-async def list_events() -> List[EventPlan]:
-    """Retrieve all planned celebrations."""
-    return event_service.list_events()
+@router.get("", response_model=List[EventPlan], summary="List all events")
+async def list_events(event_type: Optional[EventType] = Query(default=None, description="Optional filter by event type")) -> List[EventPlan]:
+    """Retrieve all planned celebrations with optional category filtering."""
+    events = event_service.list_events()
+    if event_type:
+        events = [e for e in events if e.event_type == event_type]
+    return events
 
 
-@router.post("", response_model=EventPlan, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=EventPlan, status_code=status.HTTP_201_CREATED, summary="Create a new event")
 async def create_event(req: EventCreateRequest) -> EventPlan:
     """Create a new event plan, with optional GenAI generation."""
     return event_service.create_event(req)
 
 
-@router.get("/{event_id}", response_model=EventPlan)
+@router.get("/{event_id}", response_model=EventPlan, summary="Get event details")
 async def get_event(event_id: str) -> EventPlan:
     """Retrieve details for a specific event."""
     event = event_service.get_event(event_id)
     if not event:
         raise HTTPException(status_code=404, detail="Event plan not found.")
     return event
+
+
+@router.get("/{event_id}/readiness", response_model=EventReadinessScore, summary="Get celebration readiness index")
+async def get_event_readiness(event_id: str) -> EventReadinessScore:
+    """Computes a real-time 0-100% celebration readiness index across budgets, timelines, vendors, and RSVPs."""
+    event = event_service.get_event(event_id)
+    if not event:
+        raise HTTPException(status_code=404, detail="Event plan not found.")
+    return event_service.calculate_readiness_score(event)
 
 
 @router.put("/{event_id}", response_model=EventPlan)

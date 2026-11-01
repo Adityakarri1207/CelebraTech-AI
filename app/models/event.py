@@ -261,6 +261,17 @@ class GuestItem(BaseModel):
         return sanitize_text(v)
 
 
+class EventReadinessScore(BaseModel):
+    """Holistic celebration readiness index (0-100%) coordinating all pillars."""
+    overall_score: int = Field(default=0, ge=0, le=100)
+    status: str = Field(default="In Progress")
+    budget_health_score: int = Field(default=0, ge=0, le=100)
+    timeline_progress_score: int = Field(default=0, ge=0, le=100)
+    vendor_settlement_score: int = Field(default=0, ge=0, le=100)
+    rsvp_confirmation_score: int = Field(default=0, ge=0, le=100)
+    actionable_recommendations: List[str] = Field(default_factory=list)
+
+
 class EventPlan(BaseModel):
     """Comprehensive event representation."""
     id: str = Field(default_factory=generate_uuid)
@@ -279,6 +290,7 @@ class EventPlan(BaseModel):
     ideas: List[PersonalizedIdeaItem] = Field(default_factory=list)
     guests: List[GuestItem] = Field(default_factory=list)
     color_palette: List[ColorSwatch] = Field(default_factory=list)
+    readiness: Optional[EventReadinessScore] = Field(default=None)
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     updated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 

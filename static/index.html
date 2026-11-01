@@ -3,10 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b0f19">
   <title>CelebraTech AI — GenAI Celebration & Event Planner</title>
   <meta name="description" content="AI-powered planning assistant for weddings, birthdays, and community events with budgets, timelines, vendor checklists, guests, and interactive 3D ideas.">
 
-  <!-- Google Fonts: Plus Jakarta Sans -->
+  <!-- Network & Rendering Optimization: Resource Hints -->
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+  <link rel="dns-prefetch" href="https://fonts.gstatic.com">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -16,8 +19,11 @@
 </head>
 <body>
 
+  <!-- Accessibility (WCAG 2.1 AA): Skip to Main Content Link -->
+  <a href="#main-content" class="skip-to-content">Skip to main celebration content</a>
+
   <!-- Confetti Canvas Layer -->
-  <canvas id="confetti-canvas"></canvas>
+  <canvas id="confetti-canvas" aria-hidden="true"></canvas>
 
   <!-- React 18 Application Root -->
   <div id="root"></div>

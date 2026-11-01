@@ -20,6 +20,7 @@ from app.models.event import (
     EventType,
     VendorStatus,
     BudgetCategory,
+    EventReadinessScore,
 )
 from app.models.ai import AIPromptRequest
 from app.services.ai_planner import AIPlannerService
@@ -138,14 +139,119 @@ class EventService:
         )
         self._events[community_plan.id] = community_plan
 
+    @staticmethod
+    def calculate_readiness_score(event: EventPlan) -> EventReadinessScore:
+        """Computes celebration readiness index (0-100%) and actionable recommendations."""
+        total_budget = float(event.total_budget or 0)
+        items = event.budget_items or []
+        vendors = event.vendors or []
+        timeline = event.timeline_items or []
+        guests = event.guests or []
+
+        # 1. Budget Health (30% weight)
+        total_est = sum(float(i.estimated_cost or 0) for i in items)
+        total_act = sum(float(i.actual_cost or 0) for i in items)
+        budget_health = 100
+        if total_budget > 0:
+            if total_act > total_budget:
+                overrun_pct = ((total_act - total_budget) / total_budget) * 100
+                budget_health = max(20, int(100 - overrun_pct * 1.5))
+            elif total_est > total_budget:
+                overrun_pct = ((total_est - total_budget) / total_budget) * 100
+                budget_health = max(40, int(100 - overrun_pct))
+            elif items:
+                ratio = min(1.0, total_est / total_budget)
+                budget_health = int(70 + ratio * 30)
+        else:
+            budget_health = 50
+
+        # 2. Timeline Progress (25% weight)
+        if timeline:
+            completed_milestones = sum(1 for m in timeline if m.completed)
+            timeline_score = int((completed_milestones / len(timeline)) * 100)
+        else:
+            timeline_score = 0
+
+        # 3. Vendor Settlement (25% weight)
+        if vendors:
+            v_pts = 0.0
+            for v in vendors:
+                if v.status == VendorStatus.FULLY_PAID:
+                    v_pts += 1.0
+                elif v.status == VendorStatus.DEPOSIT_PAID:
+                    v_pts += 0.6
+                elif v.status == VendorStatus.CONTRACT_SIGNED:
+                    v_pts += 0.4
+                elif v.status in (VendorStatus.QUOTE_RECEIVED, VendorStatus.CONTACTED):
+                    v_pts += 0.2
+            vendor_score = min(100, int((v_pts / len(vendors)) * 100))
+        else:
+            vendor_score = 0
+
+        # 4. RSVP Coverage (20% weight)
+        if guests:
+            responded = sum(1 for g in guests if g.rsvp_status in (GuestRSVPStatus.CONFIRMED, GuestRSVPStatus.DECLINED))
+            rsvp_score = int((responded / len(guests)) * 100)
+        else:
+            rsvp_score = 50
+
+        overall = int(round(
+            budget_health * 0.30 +
+            timeline_score * 0.25 +
+            vendor_score * 0.25 +
+            rsvp_score * 0.20
+        ))
+        overall = max(0, min(100, overall))
+
+        if overall >= 85:
+            status = "Ready to Celebrate! 🎉"
+        elif overall >= 60:
+            status = "On Track ✨"
+        elif overall >= 35:
+            status = "In Progress ⚙️"
+        else:
+            status = "Needs Attention ⚠️"
+
+        recs: List[str] = []
+        if total_act > total_budget and total_budget > 0:
+            recs.append(f"Budget overrun: Actual committed expense exceeds limit by ₹{int(total_act - total_budget):,}.")
+        if timeline and timeline_score < 70:
+            pending_count = sum(1 for m in timeline if not m.completed)
+            recs.append(f"{pending_count} timeline milestone{'s' if pending_count > 1 else ''} pending completion.")
+        if vendors and vendor_score < 60:
+            unsettled = sum(1 for v in vendors if v.status != VendorStatus.FULLY_PAID)
+            recs.append(f"{unsettled} vendor contract{'s' if unsettled > 1 else ''} awaiting full settlement.")
+        if guests:
+            pending_rsvp = sum(1 for g in guests if g.rsvp_status == GuestRSVPStatus.PENDING)
+            if pending_rsvp > 0:
+                recs.append(f"{pending_rsvp} guest RSVP{'s' if pending_rsvp > 1 else ''} awaiting response.")
+
+        if not recs:
+            recs.append("All celebration pillars are well coordinated and on track!")
+
+        return EventReadinessScore(
+            overall_score=overall,
+            status=status,
+            budget_health_score=budget_health,
+            timeline_progress_score=timeline_score,
+            vendor_settlement_score=vendor_score,
+            rsvp_confirmation_score=rsvp_score,
+            actionable_recommendations=recs,
+        )
+
     def list_events(self) -> List[EventPlan]:
         with self._lock:
             events = list(self._events.values())
+            for e in events:
+                e.readiness = self.calculate_readiness_score(e)
             return sorted(events, key=lambda e: e.updated_at, reverse=True)
 
     def get_event(self, event_id: str) -> Optional[EventPlan]:
         with self._lock:
-            return self._events.get(event_id)
+            event = self._events.get(event_id)
+            if event:
+                event.readiness = self.calculate_readiness_score(event)
+            return event
 
     def create_event(self, req: EventCreateRequest) -> EventPlan:
         now_str = datetime.now(timezone.utc).isoformat()

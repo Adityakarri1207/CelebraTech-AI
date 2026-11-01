@@ -88,3 +88,56 @@ def test_xss_sanitization_in_budget_and_vendors():
 
     # Clean up
     client.delete(f"/api/events/{event_id}")
+
+
+def test_owasp_level3_security_headers():
+    """Verify advanced OWASP Level 3 security headers and response tracking."""
+    response = client.get("/health")
+    assert response.status_code == 200
+    headers = response.headers
+
+    # OWASP Level 3 headers
+    assert "max-age=63072000" in headers.get("Strict-Transport-Security", "")
+    assert headers.get("Cross-Origin-Opener-Policy") == "same-origin"
+    assert headers.get("Cross-Origin-Resource-Policy") == "same-origin"
+    assert "geolocation=()" in headers.get("Permissions-Policy", "")
+
+    # Tracing & Performance Metrics
+    assert "X-Request-ID" in headers
+    assert "X-Response-Time" in headers
+    assert "ms" in headers.get("X-Response-Time", "")
+
+
+def test_payload_size_limit_rejection():
+    """Verify DoS mitigation rejects payloads larger than 2MB with 413."""
+    oversized_headers = {
+        "content-length": str(3 * 1024 * 1024),
+        "content-type": "application/json",
+    }
+    response = client.post("/api/events", content=b"{}", headers=oversized_headers)
+    assert response.status_code == 413
+    data = response.json()
+    assert data["error"] == "PAYLOAD_TOO_LARGE"
+    assert "2 MB" in data["detail"]
+
+
+def test_rate_limiting_headers_and_controls():
+    """Verify RFC rate limit headers are present on API requests."""
+    response = client.get("/api/events")
+    assert response.status_code == 200
+    headers = response.headers
+    assert "X-RateLimit-Limit" in headers
+    assert "X-RateLimit-Remaining" in headers
+    assert "X-RateLimit-Reset" in headers
+
+
+def test_http_caching_controls():
+    """Verify static assets are aggressively cached while API endpoints remain fresh."""
+    static_res = client.get("/static/css/styles.css")
+    assert static_res.status_code == 200
+    assert "public, max-age=" in static_res.headers.get("Cache-Control", "")
+
+    api_res = client.get("/api/events")
+    assert api_res.status_code == 200
+    assert "no-cache, no-store" in api_res.headers.get("Cache-Control", "")
+

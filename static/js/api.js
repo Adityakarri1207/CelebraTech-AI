@@ -45,6 +45,10 @@ const API = {
     return this.request(`/api/events/${id}`);
   },
 
+  getEventReadiness(id) {
+    return this.request(`/api/events/${id}/readiness`);
+  },
+
   createEvent(payload) {
     return this.request("/api/events", {
       method: "POST",

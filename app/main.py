@@ -1,19 +1,22 @@
 """
 FastAPI application entry point for CelebraTech AI Event Planner.
-Integrates middleware, API routers, static assets, and health checks.
+Integrates enterprise middleware, GZip compression, domain exception handlers,
+API routers, static assets, and health checks.
 """
 
 import mimetypes
 from pathlib import Path
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 
 from app.config import settings
 from app.api.middleware import SecurityHeadersMiddleware, RateLimiterMiddleware
 from app.api.routes_events import router as events_router
 from app.api.routes_ai import router as ai_router
+from app.exceptions import CelebraTechError
 
 mimetypes.add_type("application/javascript", ".jsx")
 mimetypes.add_type("application/javascript", ".js")
@@ -30,11 +33,14 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# Apply Security & Rate Limiting Middleware
-app.add_middleware(SecurityHeadersMiddleware)
-app.add_middleware(RateLimiterMiddleware, max_requests=180, window_seconds=60)
+# 1. Performance & Efficiency: GZip Compression for payloads > 500 bytes
+app.add_middleware(GZipMiddleware, minimum_size=500)
 
-# Apply CORS
+# 2. Security: OWASP Hardened Headers, Rate Limiting & Payload Guards
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RateLimiterMiddleware, max_requests=240, window_seconds=60)
+
+# 3. CORS Controls
 if settings.enable_cors:
     app.add_middleware(
         CORSMiddleware,
@@ -44,11 +50,25 @@ if settings.enable_cors:
         allow_headers=["*"],
     )
 
-# Include Routers
+# 4. Domain Exception Handlers for Clean API Error Responses
+@app.exception_handler(CelebraTechError)
+async def celebratech_exception_handler(request: Request, exc: CelebraTechError) -> JSONResponse:
+    """Centralized exception handler translating domain errors into structured JSON."""
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": exc.code,
+            "message": exc.message,
+            "details": exc.details,
+        },
+        headers={"X-Request-ID": request.headers.get("X-Request-ID", "")},
+    )
+
+# 5. Include API Routers
 app.include_router(events_router)
 app.include_router(ai_router)
 
-# Mount Static Assets
+# 6. Mount Static Assets
 BASE_DIR = Path(__file__).resolve().parent.parent
 STATIC_DIR = BASE_DIR / "static"
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")

@@ -1051,13 +1051,13 @@ function BudgetTab({ event, simulatorBudget, onChangeSimulatorBudget, onOpenAddM
         <table className="data-table">
           <thead>
             <tr>
-              <th>Item / Service</th>
-              <th>Category</th>
-              <th>Estimated Cost</th>
-              <th>Actual Cost</th>
-              <th>Cost Variance (Profit/Loss)</th>
-              <th>Payment Status</th>
-              <th style={{ textAlign: "right" }}>Actions</th>
+              <th scope="col">Item / Service</th>
+              <th scope="col">Category</th>
+              <th scope="col">Estimated Cost</th>
+              <th scope="col">Actual Cost</th>
+              <th scope="col">Cost Variance (Profit/Loss)</th>
+              <th scope="col">Payment Status</th>
+              <th scope="col" style={{ textAlign: "right" }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -1715,12 +1715,12 @@ function GuestsTab({ event, onOpenAddModal, onRefreshEvent, showToast }) {
           <table className="data-table">
             <thead>
               <tr>
-                <th>Guest Name</th>
-                <th>Party Size</th>
-                <th>RSVP Status</th>
-                <th>Table Assignment</th>
-                <th>Dietary Preference</th>
-                <th style={{ textAlign: "right" }}>Actions</th>
+                <th scope="col">Guest Name</th>
+                <th scope="col">Party Size</th>
+                <th scope="col">RSVP Status</th>
+                <th scope="col">Table Assignment</th>
+                <th scope="col">Dietary Preference</th>
+                <th scope="col" style={{ textAlign: "right" }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -2056,12 +2056,12 @@ function CostVarianceTab({ event, onRefreshEvent, showToast, triggerConfetti, on
           <table className="data-table">
             <thead>
               <tr>
-                <th>Vendor / Company</th>
-                <th>Category</th>
-                <th>Quoted Amount</th>
-                <th>Contract Status</th>
-                <th>Payment Status</th>
-                <th style={{ textAlign: "right" }}>Settlement Action</th>
+                <th scope="col">Vendor / Company</th>
+                <th scope="col">Category</th>
+                <th scope="col">Quoted Amount</th>
+                <th scope="col">Contract Status</th>
+                <th scope="col">Payment Status</th>
+                <th scope="col" style={{ textAlign: "right" }}>Settlement Action</th>
               </tr>
             </thead>
             <tbody>
@@ -2157,13 +2157,13 @@ function CostVarianceTab({ event, onRefreshEvent, showToast, triggerConfetti, on
           <table className="data-table">
             <thead>
               <tr>
-                <th>Expense Item</th>
-                <th>Category</th>
-                <th>Estimated Cost</th>
-                <th>Actual Cost</th>
-                <th>Cost Variance (Diff)</th>
-                <th>Payment Status</th>
-                <th style={{ textAlign: "right" }}>Toggle Payment</th>
+                <th scope="col">Expense Item</th>
+                <th scope="col">Category</th>
+                <th scope="col">Estimated Cost</th>
+                <th scope="col">Actual Cost</th>
+                <th scope="col">Cost Variance (Diff)</th>
+                <th scope="col">Payment Status</th>
+                <th scope="col" style={{ textAlign: "right" }}>Toggle Payment</th>
               </tr>
             </thead>
             <tbody>
@@ -2373,7 +2373,20 @@ function AIAssistantTab({ event, messages, input, setInput, onSend, isLoading })
 /* ==========================================================================
    Modals: Create Event with Presets & Add Items
    ========================================================================== */
+function useModalEscape(onClose) {
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+}
+
 function NewEventModal({ onClose, onCreated, showToast }) {
+  useModalEscape(onClose);
   const [formData, setFormData] = useState({
     title: "",
     event_type: "wedding",
@@ -2466,10 +2479,10 @@ function NewEventModal({ onClose, onCreated, showToast }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-create-event-title" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>Create New Celebration</h3>
-          <button type="button" className="modal-close-btn" onClick={onClose}>✕</button>
+          <h3 id="modal-create-event-title">Create New Celebration</h3>
+          <button type="button" className="modal-close-btn" onClick={onClose} aria-label="Close dialog">✕</button>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
@@ -2607,6 +2620,7 @@ function NewEventModal({ onClose, onCreated, showToast }) {
 }
 
 function AddExpenseModal({ eventId, onClose, onAdded, showToast }) {
+  useModalEscape(onClose);
   const [formData, setFormData] = useState({
     name: "",
     category: "Venue & Rentals",
@@ -2631,10 +2645,10 @@ function AddExpenseModal({ eventId, onClose, onAdded, showToast }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-add-expense-title" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>Add Budget Expense Item</h3>
-          <button type="button" className="modal-close-btn" onClick={onClose}>✕</button>
+          <h3 id="modal-add-expense-title">Add Budget Expense Item</h3>
+          <button type="button" className="modal-close-btn" onClick={onClose} aria-label="Close dialog">✕</button>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
@@ -2717,6 +2731,7 @@ function AddExpenseModal({ eventId, onClose, onAdded, showToast }) {
 }
 
 function AddTimelineModal({ eventId, onClose, onAdded, showToast }) {
+  useModalEscape(onClose);
   const [formData, setFormData] = useState({
     title: "",
     time_or_offset: "10:00 AM",
@@ -2740,10 +2755,10 @@ function AddTimelineModal({ eventId, onClose, onAdded, showToast }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-add-timeline-title" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>Add Schedule Milestone</h3>
-          <button type="button" className="modal-close-btn" onClick={onClose}>✕</button>
+          <h3 id="modal-add-timeline-title">Add Schedule Milestone</h3>
+          <button type="button" className="modal-close-btn" onClick={onClose} aria-label="Close dialog">✕</button>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
@@ -2809,6 +2824,7 @@ function AddTimelineModal({ eventId, onClose, onAdded, showToast }) {
 }
 
 function AddVendorModal({ eventId, onClose, onAdded, showToast }) {
+  useModalEscape(onClose);
   const [formData, setFormData] = useState({
     name: "",
     category: "Catering",
@@ -2839,10 +2855,10 @@ function AddVendorModal({ eventId, onClose, onAdded, showToast }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-add-vendor-title" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>Add Event Vendor</h3>
-          <button type="button" className="modal-close-btn" onClick={onClose}>✕</button>
+          <h3 id="modal-add-vendor-title">Add Event Vendor</h3>
+          <button type="button" className="modal-close-btn" onClick={onClose} aria-label="Close dialog">✕</button>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
@@ -2947,6 +2963,7 @@ function AddVendorModal({ eventId, onClose, onAdded, showToast }) {
 }
 
 function AddGuestModal({ eventId, onClose, onAdded, showToast }) {
+  useModalEscape(onClose);
   const [formData, setFormData] = useState({
     name: "",
     party_size: 1,
@@ -2972,10 +2989,10 @@ function AddGuestModal({ eventId, onClose, onAdded, showToast }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-add-guest-title" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>Add Guest to Roster</h3>
-          <button type="button" className="modal-close-btn" onClick={onClose}>✕</button>
+          <h3 id="modal-add-guest-title">Add Guest to Roster</h3>
+          <button type="button" className="modal-close-btn" onClick={onClose} aria-label="Close dialog">✕</button>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
@@ -3087,6 +3104,7 @@ function AddGuestModal({ eventId, onClose, onAdded, showToast }) {
    RecordPaymentModal: Interactive Modal for Actual Spend & Cost Variance Tracking
    ========================================================================== */
 function RecordPaymentModal({ eventId, item, type = "budget", onClose, onRecorded, showToast }) {
+  useModalEscape(onClose);
   const isVendor = type === "vendor";
   const estimatedCost = isVendor
     ? Number(item.quoted_price || item.quoted_cost || 0)

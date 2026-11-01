@@ -25,8 +25,8 @@
   --accent-blue: #3b82f6;
 
   --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --text-dim: #64748b;
+  --text-muted: #cbd5e1;
+  --text-dim: #94a3b8;
 
   --shadow-subtle: 0 4px 20px rgba(0, 0, 0, 0.35);
   --shadow-card: 0 10px 30px -5px rgba(0, 0, 0, 0.6), 0 0 1px 1px rgba(255, 255, 255, 0.08);
@@ -58,6 +58,28 @@ body {
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
   position: relative;
+}
+
+/* Accessibility: WCAG 2.1 AA Skip-to-Content Link */
+.skip-to-content {
+  position: absolute;
+  top: -120px;
+  left: 1.5rem;
+  z-index: 99999;
+  background: var(--accent-gold);
+  color: #080c16;
+  padding: 0.75rem 1.25rem;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.75);
+  transition: top 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.skip-to-content:focus {
+  top: 1.5rem;
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
 }
 
 /* Ambient Radial Background Orbs with Smooth Floating Glows */
