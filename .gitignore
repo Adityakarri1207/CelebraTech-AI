@@ -28,3 +28,7 @@ desktop.ini
 .env
 .env.local
 *.log
+
+# Binaries & Tunnels
+bin/
+*.exe
