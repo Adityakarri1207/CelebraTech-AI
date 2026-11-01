@@ -1,5 +1,7 @@
 # 🎪 CelebraTech AI — GenAI Celebration & Event Planner
 
+[![Live Deployment](https://img.shields.io/badge/Render-Live%20Demo-46E3B7.svg?style=for-the-badge&logo=render)](https://celebratech-aiuvicorn-app-main-app-host.onrender.com/)
+
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
 [![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-blue.svg?style=flat&logo=python)](https://python.org)
 [![React 18](https://img.shields.io/badge/React-18.3-61DAFB.svg?style=flat&logo=react)](https://react.dev)
@@ -7,6 +9,10 @@
 [![Security Hardened](https://img.shields.io/badge/Security-OWASP%20Hardened-green.svg?style=flat)](https://owasp.org)
 [![WCAG](https://img.shields.io/badge/A11y-WCAG%202.1%20AA-purple.svg?style=flat)](https://www.w3.org/WAI/standards-guidelines/wcag/)
 [![Currency](https://img.shields.io/badge/Currency-Indian%20Rupees%20(%E2%82%B9)-gold.svg?style=flat)](https://en.wikipedia.org/wiki/Indian_rupee)
+
+> 🚀 **Live Production Deployment**: **[https://celebratech-aiuvicorn-app-main-app-host.onrender.com/](https://celebratech-aiuvicorn-app-main-app-host.onrender.com/)**  
+> 📖 **Interactive Swagger API Docs**: **[https://celebratech-aiuvicorn-app-main-app-host.onrender.com/docs](https://celebratech-aiuvicorn-app-main-app-host.onrender.com/docs)**  
+> 🏥 **Health Check Endpoint**: **[https://celebratech-aiuvicorn-app-main-app-host.onrender.com/health](https://celebratech-aiuvicorn-app-main-app-host.onrender.com/health)**
 
 > **Enterprise-Grade Celebration & Event Planning Platform** powered by FastAPI, Pydantic v2, and Google GenAI. Purpose-built for **Weddings**, **Birthdays**, and **Community Events** with automated budget allocation, real-time cost variance tracking in **Indian Rupees (₹)**, What-If scenario simulations, milestone run-of-show timelines, live countdowns, synchronized vendor checklists, guest RSVP management, and interactive **3D flip-card celebration ideas**.
 
